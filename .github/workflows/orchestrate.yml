@@ -57,6 +57,9 @@ jobs:
 
     - name: Install Playwright
       run: npx playwright install --with-deps
-    
+
+    - name: Install Saucelabs Reporter
+      run: npm install @saucelabs/playwright-reporter
+      
     - name: Playwright Test
-      run: npx playwright test
+      run: npx playwright test --reporter=@saucelabs/playwright-reporter
