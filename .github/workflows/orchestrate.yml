@@ -1,0 +1,59 @@
+name: Run playwright tests on Orchestrate
+
+on:
+  workflow_dispatch:
+  
+jobs:
+  start-runner:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Create Orchestrate Runner Config
+      run: |
+        cat <<EOF > config.yml
+        apiVersion: v1alpha
+        kind: imagerunner
+        sauce:
+          region: us-west-1
+        suites:
+          - name: Sauce Runner
+            workload: webdriver
+            image: myoung34/github-runner:latest
+            env:
+              REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+              RUNNER_SCOPE: repo
+              ACCESS_TOKEN: ${{ secrets.PAT }}
+              RUNNER_NAME_PREFIX: sauce-runner
+              LABELS: sauce-orchestrate-runner
+              EPHEMERAL: true
+        EOF
+    - name: Saucectl RUN
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: saucelabs/saucectl-run-action@v4
+      with:
+        sauce-username: ${{ secrets.SAUCE_USERNAME }}
+        sauce-access-key: ${{ secrets.SAUCE_ACCESS_KEY }}
+        config-file: config.yml
+        # async false could assist in debugging startup issues.
+        # else looking at saucectl imagerunner logs is important.
+        async: true
+  run-test:
+    runs-on: sauce-orchestrate-runner
+    container:
+      image: mcr.microsoft.com/playwright:latest
+
+    steps:
+    - name: Checkout GitHub repo
+      uses: actions/checkout@v3
+      
+    - name: Install node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        
+    - name: NPM Clean Install
+      run: npm ci
+    
+    - name: Playwright Test
+      run: npx playwright test
+      
