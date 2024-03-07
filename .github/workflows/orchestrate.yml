@@ -25,7 +25,6 @@ jobs:
               RUNNER_NAME_PREFIX: sauce-runner
               LABELS: sauce-orchestrate-runner
               EPHEMERAL: true
-              START_DOCKER_SERVICE: true
         EOF
     - name: Saucectl RUN
       env:
@@ -40,9 +39,10 @@ jobs:
         async: true
   run-test:
     runs-on: sauce-orchestrate-runner
-    container:
-      image: mcr.microsoft.com/playwright:latest
-
+    # dind is not supported for myoung34/github-runner
+    #container:
+    #  image: mcr.microsoft.com/playwright:latest
+    # 
     steps:
     - name: Checkout GitHub repo
       uses: actions/checkout@v3
@@ -54,7 +54,9 @@ jobs:
         
     - name: NPM Clean Install
       run: npm ci
+
+    - name: Install Playwright
+      run: npx playwright install --with-deps
     
     - name: Playwright Test
       run: npx playwright test
-      
