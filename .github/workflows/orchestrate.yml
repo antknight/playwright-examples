@@ -25,6 +25,7 @@ jobs:
               RUNNER_NAME_PREFIX: sauce-runner
               LABELS: sauce-orchestrate-runner
               EPHEMERAL: true
+              START_DOCKER_SERVICE: true
         EOF
     - name: Saucectl RUN
       env:
